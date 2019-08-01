@@ -1,5 +1,5 @@
 [package]
-name = "r349"
+name = "android_lint_report_parser"
 version = "0.1.0"
 authors = ["Pavel <pavel.shackih@gmail.com>"]
 edition = "2018"
