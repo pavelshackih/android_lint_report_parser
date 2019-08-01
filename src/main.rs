@@ -1,35 +1,27 @@
 use std::path::Path;
 
-use serde_derive::Deserialize;
-use serde_xml_rs::from_reader;
+mod config_parser;
 
-const SUPPORTED_FORMAT: &str = "5";
-const UNUSED_RESOURCES: &str = "UnusedResources";
+use config_parser::Issue;
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
-    println!("{:?}", args);
-    assert!(args.len() > 1);
-    let file = &args[1];
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.is_empty() {
+        println!("Please provide path to lint report file as first argument.");
+        return;
+    }
+
+    let file = &args[0];
 
     if let Err(e) = std::fs::File::open(file) {
         println!("Can't open file {:?}: {:?}", file, e.kind());
         return;
     }
 
-    let file = std::fs::read(file).unwrap();
-    let root: Root = from_reader(file.as_slice()).unwrap();
-
-    if root.format != *SUPPORTED_FORMAT {
-        panic!("Invalid lint file format, supported {}, but actual {}", SUPPORTED_FORMAT, root.format);
+    match config_parser::parse(file) {
+        Ok(issues) => manage_issues(issues),
+        Err(e) => println!("Error while loading issues: {}", e),
     }
-
-    let issues: Vec<Issue> = root.vec
-        .into_iter()
-        .filter(|item| item.id == *UNUSED_RESOURCES)
-        .collect();
-
-    manage_issues(issues);
 }
 
 fn manage_issues(vec: Vec<Issue>) {
@@ -48,10 +40,10 @@ fn manage_issues(vec: Vec<Issue>) {
 fn apply_resolver_for_resource(path: &Path, resolver: IssueResolver) {
     match resolver {
         IssueResolver::RemoveFile => match std::fs::remove_file(path) {
-            Ok(_) => println!("File {:?} removed", path),
-            Err(_) => println!("Can't remove file {:?}", path),
+            Ok(_) => println!("File {:?} removed.", path),
+            Err(e) => println!("Warning: {:?}: {}.", path, e),
         },
-        IssueResolver::Unknown => println!("Unknown resolver for path: {:?}", path),
+        IssueResolver::Unknown => println!("Unknown resolver for path: {:?}.", path),
     }
 }
 
@@ -71,26 +63,4 @@ fn detect_resolver_by_parent_folder(name: &str) -> IssueResolver {
 enum IssueResolver {
     RemoveFile,
     Unknown,
-}
-
-#[derive(Debug, Deserialize)]
-struct Root {
-    format: String,
-    by: String,
-    #[serde(rename = "issue", default)]
-    vec: Vec<Issue>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Issue {
-    id: String,
-    message: String,
-    explanation: String,
-    #[serde(rename = "location", default)]
-    locations: Vec<Location>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Location {
-    file: String,
 }
