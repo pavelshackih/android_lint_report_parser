@@ -1,6 +1,5 @@
 use std::path::Path;
 
-use errors::CliError;
 use config_parser::Issue;
 
 mod config_parser;
@@ -17,14 +16,7 @@ fn main() {
 
     match config_parser::parse(file) {
         Ok(issues) => manage_issues(issues),
-        Err(e) => print_error(e),
-    }
-}
-
-fn print_error(error: CliError) {
-    match error {
-        CliError::IoError(io_error) => println!("Error with lint file: {:?}", io_error),
-        CliError::ParseDeError(parsing_error) => println!("Error while parsing file: {:?}", parsing_error),
+        Err(e) => println!("Error: {:?}", e),
     }
 }
 
