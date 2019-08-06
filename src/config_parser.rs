@@ -1,7 +1,7 @@
 use serde_derive::Deserialize;
 use serde_xml_rs::from_reader;
-use std::io;
-use std::result;
+
+use super::errors::Result;
 
 const UNUSED_RESOURCES: &str = "UnusedResources";
 const FILE_VERSION: &str = "5";
@@ -28,8 +28,6 @@ pub struct Location {
     pub file: String,
 }
 
-pub type Result<T> = result::Result<T, CliError>;
-
 pub fn parse(path: &str) -> Result<Vec<Issue>> {
     let file = std::fs::read(path)?;
     let root = from_reader::<_, Root>(file.as_slice())?;
@@ -42,21 +40,4 @@ pub fn parse(path: &str) -> Result<Vec<Issue>> {
         .collect();
 
     Ok(issues)
-}
-
-pub enum CliError {
-    IoError(io::Error),
-    ParseDeError(serde_xml_rs::Error)
-}
-
-impl From<io::Error> for CliError {
-    fn from(error: io::Error) -> Self {
-        CliError::IoError(error)
-    }
-}
-
-impl From<serde_xml_rs::Error> for CliError {
-    fn from(error: serde_xml_rs::Error) -> Self {
-        CliError::ParseDeError(error)
-    }
 }

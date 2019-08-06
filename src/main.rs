@@ -1,9 +1,10 @@
 use std::path::Path;
 
-mod config_parser;
-
+use errors::CliError;
 use config_parser::Issue;
-use config_parser::CliError;
+
+mod config_parser;
+mod errors;
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -20,7 +21,7 @@ fn main() {
     }
 }
 
-fn print_error(error: config_parser::CliError) {
+fn print_error(error: CliError) {
     match error {
         CliError::IoError(io_error) => println!("Error with lint file: {:?}", io_error),
         CliError::ParseDeError(parsing_error) => println!("Error while parsing file: {:?}", parsing_error),
@@ -42,10 +43,11 @@ fn manage_issues(vec: Vec<Issue>) {
 
 fn apply_resolver_for_resource(path: &Path, resolver: IssueResolver) {
     match resolver {
-        IssueResolver::RemoveFile => match std::fs::remove_file(path) {
-            Ok(_) => println!("File {:?} removed.", path),
-            Err(e) => println!("Warning: {:?}: {}.", path, e),
-        },
+        IssueResolver::RemoveFile =>
+            match std::fs::remove_file(path) {
+                Ok(_) => println!("File {:?} removed.", path),
+                Err(e) => println!("Warning: {:?}: {}.", path, e),
+            },
         IssueResolver::Unknown => println!("Unknown resolver for path: {:?}.", path),
     }
 }
@@ -58,9 +60,10 @@ fn resolve_file(path: &Path) -> Option<IssueResolver> {
 }
 
 fn detect_resolver_by_parent_folder(name: &str) -> IssueResolver {
-    if name.contains("drawable") || name.contains("layout") {
-        IssueResolver::RemoveFile
-    } else { IssueResolver::Unknown }
+    match name {
+        n if n.contains("drawable") || n.contains("layout") => IssueResolver::RemoveFile,
+        _ => IssueResolver::Unknown
+    }
 }
 
 enum IssueResolver {
