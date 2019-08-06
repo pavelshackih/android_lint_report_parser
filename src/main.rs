@@ -14,11 +14,6 @@ fn main() {
 
     let file = &args[0];
 
-    if let Err(e) = std::fs::File::open(file) {
-        println!("Can't open file {:?}: {:?}", file, e.kind());
-        return;
-    }
-
     match config_parser::parse(file) {
         Ok(issues) => manage_issues(issues),
         Err(e) => print_error(e),
