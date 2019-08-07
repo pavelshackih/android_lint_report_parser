@@ -32,9 +32,13 @@ pub fn parse(path: &str) -> Result<Vec<Issue>> {
     let file = std::fs::read(path)?;
     let root = from_reader::<_, Root>(file.as_slice())?;
     if FILE_VERSION != root.format {
-        println!("Warning: invalid lint file format, supported {}, but actual {}.", FILE_VERSION, root.format);
+        println!(
+            "Warning: invalid lint file format, supported {}, but actual {}.",
+            FILE_VERSION, root.format
+        );
     }
-    let issues: Vec<Issue> = root.vec
+    let issues: Vec<Issue> = root
+        .vec
         .into_iter()
         .filter(|item| item.id == *UNUSED_RESOURCES)
         .collect();

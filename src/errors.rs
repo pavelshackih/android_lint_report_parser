@@ -6,7 +6,7 @@ pub type Result<T> = result::Result<T, CliError>;
 #[derive(Debug)]
 pub enum CliError {
     IoError(io::Error),
-    ParseDeError(serde_xml_rs::Error)
+    ParseDeError(serde_xml_rs::Error),
 }
 
 impl From<io::Error> for CliError {
