@@ -1,5 +1,6 @@
 use serde_derive::Deserialize;
 use serde_xml_rs::from_reader;
+use std::fs;
 
 use super::errors::Result;
 
@@ -29,7 +30,7 @@ pub struct Location {
 }
 
 pub fn parse(path: &str) -> Result<Vec<Issue>> {
-    let file = std::fs::read(path)?;
+    let file = fs::read(path)?;
     let root = from_reader::<_, Root>(file.as_slice())?;
     if FILE_VERSION != root.format {
         println!(
