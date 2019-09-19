@@ -1,6 +1,7 @@
+use std::fs;
+
 use serde_derive::Deserialize;
 use serde_xml_rs::from_reader;
-use std::fs;
 
 use super::errors::Result;
 
@@ -27,6 +28,8 @@ pub struct Issue {
 #[derive(Debug, Deserialize)]
 pub struct Location {
     pub file: String,
+    pub line: u32,
+    pub column: u32,
 }
 
 pub fn parse(path: &str) -> Result<Vec<Issue>> {
